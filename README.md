@@ -20,8 +20,9 @@ contains placeholders only.
 
 | Path | Describes |
 |---|---|
-| `docs/architecture.md` | Architecture diagram (Mermaid), design considerations, resource details |
-| `docs/architecture.png` | The same diagram as an image |
+| `docs/architecture.md` | Architecture diagram, design considerations, resource details |
+| `docs/architecture.png` | Architecture diagram (AWS icons) |
+| `docs/architecture.drawio` | Editable draw.io source of the diagram |
 | `vpc.tf` | VPC, 6 subnets, internet gateway, NAT gateway, route tables |
 | `vpc_peering.tf` | HMD side of the peering with the KaHa VPC and the MongoDB Atlas VPC |
 | `security_groups.tf` | ALB, app server, EFS, DB and OpenVPN security groups |

@@ -12,62 +12,9 @@ and the EC2 role is `app-prod-ec2-role`.
 
 ## Architecture diagram
 
-```mermaid
-flowchart LR
-    users(["Web / mobile users"])
-    devops(["KaHa DevOps"])
+![HMD account architecture](architecture.png)
 
-    subgraph region["Europe (Stockholm) eu-north-1"]
-        direction LR
-
-        subgraph hmd["HMD AWS account"]
-            direction TB
-
-            services["Account services<br/>CloudWatch · SNS · CloudTrail<br/>GuardDuty · Config · KMS"]
-
-            subgraph vpc["VPC (app-prod-vpc)"]
-                direction TB
-
-                subgraph pub["Public subnets 1a / 1b"]
-                    alb["Application Load Balancer"]
-                    nat["NAT Gateway"]
-                    vpn["OpenVPN"]
-                end
-
-                subgraph pvt["Private subnets 1a / 1b"]
-                    app["App server (EC2)"]
-                    efs["EFS"]
-                end
-
-                subgraph db["DB private subnets 1a / 1b"]
-                    rds[("RDS MySQL")]
-                end
-            end
-
-            s3[("S3 user static data")]
-        end
-
-        subgraph atlas["MongoDB Atlas account"]
-            mongo[("MongoDB Atlas Cloud Service")]
-        end
-
-        kaha["KaHa VPC (KaHa account)"]
-    end
-
-    ext["HMD managed external services<br/>SMS gateways · Voice OTP providers<br/>SendGrid email · MapMyIndia navigation<br/>CleverTap analytics · Entity Sports feed<br/>OpenWeather API"]
-
-    users --> alb
-    alb --> app
-    app --> efs
-    app --> rds
-    app --> s3
-    app -- outbound --> nat
-    nat --> ext
-    devops -. VPN .-> vpn
-    vpn --> rds
-    vpc <-. VPC peering .-> kaha
-    vpc <-. VPC peering .-> mongo
-```
+Editable source: [`architecture.drawio`](architecture.drawio). Open it in [draw.io](https://app.diagrams.net) and export it again as `architecture.png` after changes.
 
 ## Architectural considerations
 
