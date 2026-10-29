@@ -89,7 +89,7 @@ data "aws_iam_policy_document" "config_bucket" {
 }
 
 resource "aws_iam_role" "config" {
-  name = "KhmdPdConfigRole"
+  name = "${local.name}-config-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -127,7 +127,7 @@ resource "aws_iam_role_policy" "config_s3" {
 }
 
 resource "aws_config_configuration_recorder" "main" {
-  name     = "khmd-eu-pd-config-recorder"
+  name     = "${local.name}-config-recorder"
   role_arn = aws_iam_role.config.arn
 
   recording_group {
@@ -137,7 +137,7 @@ resource "aws_config_configuration_recorder" "main" {
 }
 
 resource "aws_config_delivery_channel" "main" {
-  name           = "khmd-eu-pd-config-channel"
+  name           = "${local.name}-config-channel"
   s3_bucket_name = aws_s3_bucket.config.id
 
   depends_on = [aws_config_configuration_recorder.main, aws_s3_bucket_policy.config]

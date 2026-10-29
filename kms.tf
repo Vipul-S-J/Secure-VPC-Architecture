@@ -1,18 +1,18 @@
 # Single-region symmetric key (encrypt/decrypt), used for CloudTrail, CloudWatch Logs,
 # EBS, EFS, RDS, S3 and SNS.
 resource "aws_kms_key" "prod" {
-  description             = "kh_hmd prod key (eu-north-1)"
+  description             = "${local.name} KMS key"
   key_usage               = "ENCRYPT_DECRYPT"
   multi_region            = false
   enable_key_rotation     = true
   deletion_window_in_days = 30
   policy                  = data.aws_iam_policy_document.kms.json
 
-  tags = { Name = "kh_hmd-prod-eu-key" }
+  tags = { Name = "${local.name}-key" }
 }
 
 resource "aws_kms_alias" "prod" {
-  name          = "alias/kh_hmd-prod-eu-key"
+  name          = "alias/${local.name}-key"
   target_key_id = aws_kms_key.prod.key_id
 }
 

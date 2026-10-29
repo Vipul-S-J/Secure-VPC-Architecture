@@ -1,4 +1,4 @@
-# App server khmd-eu-pd-app-srv in private subnet 1a, behind the ALB.
+# App server in private subnet 1a, behind the ALB.
 resource "aws_instance" "app" {
   ami                    = local.app_ami_id
   instance_type          = var.app_instance_type
@@ -21,8 +21,8 @@ resource "aws_instance" "app" {
     kms_key_id  = aws_kms_key.prod.arn
   }
 
-  tags        = { Name = "khmd-eu-pd-app-srv" }
-  volume_tags = { Name = "khmd-eu-pd-app-srv-root" }
+  tags        = { Name = "${local.name}-app" }
+  volume_tags = { Name = "${local.name}-app-root" }
 
   lifecycle {
     # A newer Amazon Linux AMI must not replace the running server.
@@ -30,13 +30,13 @@ resource "aws_instance" "app" {
   }
 }
 
-# Base image khmd-srv-base-ami, taken from the app server once it is set up.
+# Base AMI, taken from the app server once it is set up.
 resource "aws_ami_from_instance" "base" {
   count = var.create_base_ami ? 1 : 0
 
-  name                    = "khmd-srv-base-ami"
+  name                    = "${local.name}-base-ami"
   source_instance_id      = aws_instance.app.id
   snapshot_without_reboot = true
 
-  tags = { Name = "khmd-srv-base-ami" }
+  tags = { Name = "${local.name}-base-ami" }
 }

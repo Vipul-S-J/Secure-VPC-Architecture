@@ -4,8 +4,10 @@ locals {
   account_id = data.aws_caller_identity.current.account_id
   azs        = ["${var.region}a", "${var.region}b"]
 
-  # Names from the architecture document.
-  trail_name    = "kh_hmd-eu-pd-cloudtrail"
+  # Every resource name follows <project>-<environment>-<resource>, e.g. app-prod-vpc.
+  name = "${var.project}-${var.environment}"
+
+  trail_name    = "${local.name}-cloudtrail"
   trail_arn     = "arn:aws:cloudtrail:${var.region}:${local.account_id}:trail/${local.trail_name}"
   https_enabled = var.certificate_arn != ""
   kaha_peering  = var.kaha_peering_connection_id != ""

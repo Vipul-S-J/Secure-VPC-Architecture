@@ -5,7 +5,7 @@ resource "aws_guardduty_detector" "main" {
 
 # High-severity findings (7.0+) are sent to the alerts SNS topic.
 resource "aws_cloudwatch_event_rule" "guardduty_high" {
-  name        = "khmd-eu-pd-guardduty-high"
+  name        = "${local.name}-guardduty-high"
   description = "GuardDuty findings with severity >= 7"
   event_pattern = jsonencode({
     source        = ["aws.guardduty"]

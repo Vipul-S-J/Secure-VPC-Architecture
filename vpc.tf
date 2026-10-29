@@ -1,29 +1,30 @@
+# CIDRs are passed in through variables and are not stored in this repo.
 locals {
   public_subnets = {
-    "1a" = { name = "kh_hmd-pd-1a-pub-subnet", cidr = "10.91.0.0/23", az = local.azs[0] }
-    "1b" = { name = "kh_hmd-pd-1b-pub-subnet", cidr = "10.91.2.0/23", az = local.azs[1] }
+    "1a" = { name = "${local.name}-public-1a", cidr = var.subnet_cidrs.public_1a, az = local.azs[0] }
+    "1b" = { name = "${local.name}-public-1b", cidr = var.subnet_cidrs.public_1b, az = local.azs[1] }
   }
   private_subnets = {
-    "1a" = { name = "kh_hmd-pd-1a-pvt-subnet", cidr = "10.91.4.0/23", az = local.azs[0] }
-    "1b" = { name = "kh_hmd-pd-1b-pvt-subnet", cidr = "10.91.6.0/23", az = local.azs[1] }
+    "1a" = { name = "${local.name}-private-1a", cidr = var.subnet_cidrs.private_1a, az = local.azs[0] }
+    "1b" = { name = "${local.name}-private-1b", cidr = var.subnet_cidrs.private_1b, az = local.azs[1] }
   }
   db_subnets = {
-    "1a" = { name = "kh_hmd-pd-db-1a-pvt-subnet", cidr = "10.91.8.0/23", az = local.azs[0] }
-    "1b" = { name = "kh_hmd-pd-db-1b-pvt-subnet", cidr = "10.91.10.0/23", az = local.azs[1] }
+    "1a" = { name = "${local.name}-db-1a", cidr = var.subnet_cidrs.db_1a, az = local.azs[0] }
+    "1b" = { name = "${local.name}-db-1b", cidr = var.subnet_cidrs.db_1b, az = local.azs[1] }
   }
 }
 
 resource "aws_vpc" "main" {
-  cidr_block           = "10.91.0.0/17"
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = { Name = "kh_hmd-eu-pd-vpc" }
+  tags = { Name = "${local.name}-vpc" }
 }
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "kh_hmd-eu-pd-igw" }
+  tags   = { Name = "${local.name}-igw" }
 }
 
 # ---------------------------------------------------------------- Subnets
@@ -59,13 +60,13 @@ resource "aws_subnet" "db" {
 
 resource "aws_eip" "nat" {
   domain = "vpc"
-  tags   = { Name = "kh_hmd-eu-pd-pub-nat-eip" }
+  tags   = { Name = "${local.name}-nat-eip" }
 }
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public["1a"].id
-  tags          = { Name = "kh_hmd-eu-pd-pub-nat" }
+  tags          = { Name = "${local.name}-nat" }
 
   depends_on = [aws_internet_gateway.main]
 }
@@ -74,7 +75,7 @@ resource "aws_nat_gateway" "main" {
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "kh_hmd-pd-pub-rtb" }
+  tags   = { Name = "${local.name}-public-rt" }
 }
 
 resource "aws_route" "public_internet" {
@@ -83,10 +84,10 @@ resource "aws_route" "public_internet" {
   gateway_id             = aws_internet_gateway.main.id
 }
 
-# Private route table with the NAT gateway (kh_hmd-pd-pvt-rtb).
+# Private route table with the NAT gateway.
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "kh_hmd-pd-pvt-rtb" }
+  tags   = { Name = "${local.name}-private-rt" }
 }
 
 resource "aws_route" "private_nat" {
@@ -98,7 +99,7 @@ resource "aws_route" "private_nat" {
 # DB subnets have no internet route. Only VPC-local and peering traffic.
 resource "aws_route_table" "db" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "kh_hmd-pd-db-rtb" }
+  tags   = { Name = "${local.name}-db-rt" }
 }
 
 resource "aws_route_table_association" "public" {

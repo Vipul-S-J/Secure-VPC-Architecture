@@ -22,8 +22,8 @@ resource "aws_instance" "openvpn" {
     kms_key_id  = aws_kms_key.prod.arn
   }
 
-  tags        = { Name = "khmd-eu-pd-openvpn" }
-  volume_tags = { Name = "khmd-eu-pd-openvpn-root" }
+  tags        = { Name = "${local.name}-openvpn" }
+  volume_tags = { Name = "${local.name}-openvpn-root" }
 
   lifecycle {
     ignore_changes = [ami]
@@ -40,7 +40,7 @@ resource "aws_eip" "openvpn" {
 
   domain   = "vpc"
   instance = aws_instance.openvpn[0].id
-  tags     = { Name = "khmd-eu-pd-openvpn-eip" }
+  tags     = { Name = "${local.name}-openvpn-eip" }
 
   depends_on = [aws_internet_gateway.main]
 }

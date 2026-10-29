@@ -1,7 +1,7 @@
 # SNS alerts topic and CloudWatch alarms.
 
 resource "aws_sns_topic" "alerts" {
-  name              = "khmd-eu-pd-alerts"
+  name              = "${local.name}-alerts"
   kms_master_key_id = aws_kms_key.prod.id
 }
 
@@ -43,7 +43,7 @@ locals {
 # ---------------------------------------------------------------- App server
 
 resource "aws_cloudwatch_metric_alarm" "app_cpu" {
-  alarm_name          = "khmd-eu-pd-app-srv-cpu-high"
+  alarm_name          = "${local.name}-app-cpu-high"
   namespace           = "AWS/EC2"
   metric_name         = "CPUUtilization"
   dimensions          = { InstanceId = aws_instance.app.id }
@@ -57,7 +57,7 @@ resource "aws_cloudwatch_metric_alarm" "app_cpu" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "app_status" {
-  alarm_name          = "khmd-eu-pd-app-srv-status-check"
+  alarm_name          = "${local.name}-app-status-check"
   namespace           = "AWS/EC2"
   metric_name         = "StatusCheckFailed"
   dimensions          = { InstanceId = aws_instance.app.id }
@@ -73,7 +73,7 @@ resource "aws_cloudwatch_metric_alarm" "app_status" {
 # ---------------------------------------------------------------- ALB
 
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
-  alarm_name          = "khmd-eu-pd-alb-5xx"
+  alarm_name          = "${local.name}-alb-5xx"
   namespace           = "AWS/ApplicationELB"
   metric_name         = "HTTPCode_ELB_5XX_Count"
   dimensions          = { LoadBalancer = aws_lb.main.arn_suffix }
@@ -88,7 +88,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_unhealthy" {
-  alarm_name  = "khmd-eu-pd-alb-unhealthy-targets"
+  alarm_name  = "${local.name}-alb-unhealthy-targets"
   namespace   = "AWS/ApplicationELB"
   metric_name = "UnHealthyHostCount"
   dimensions = {
@@ -107,7 +107,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy" {
 # ---------------------------------------------------------------- RDS
 
 resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
-  alarm_name          = "khmd-eu-pd-mysql-cpu-high"
+  alarm_name          = "${local.name}-mysql-cpu-high"
   namespace           = "AWS/RDS"
   metric_name         = "CPUUtilization"
   dimensions          = { DBInstanceIdentifier = aws_db_instance.mysql.identifier }
@@ -121,7 +121,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_storage" {
-  alarm_name          = "khmd-eu-pd-mysql-free-storage-low"
+  alarm_name          = "${local.name}-mysql-free-storage-low"
   namespace           = "AWS/RDS"
   metric_name         = "FreeStorageSpace"
   dimensions          = { DBInstanceIdentifier = aws_db_instance.mysql.identifier }

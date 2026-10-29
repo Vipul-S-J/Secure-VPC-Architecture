@@ -3,10 +3,51 @@ variable "hmd_account_id" {
   type        = string
 }
 
+variable "project" {
+  description = "Short project name used as the first part of every resource name."
+  type        = string
+  default     = "app"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{1,12}$", var.project))
+    error_message = "Use 1-12 lowercase letters, digits or hyphens (S3, RDS and ALB naming rules)."
+  }
+}
+
+variable "environment" {
+  description = "Environment name used in every resource name."
+  type        = string
+  default     = "prod"
+
+  validation {
+    condition     = can(regex("^[a-z0-9]{1,8}$", var.environment))
+    error_message = "Use 1-8 lowercase letters or digits."
+  }
+}
+
 variable "region" {
   description = "AWS region (Europe - Stockholm)."
   type        = string
   default     = "eu-north-1"
+}
+
+# ---------------------------------------------------------------- Network
+
+variable "vpc_cidr" {
+  description = "CIDR of the VPC."
+  type        = string
+}
+
+variable "subnet_cidrs" {
+  description = "CIDRs of the six subnets (public, private app and private DB, in AZ a and b)."
+  type = object({
+    public_1a  = string
+    public_1b  = string
+    private_1a = string
+    private_1b = string
+    db_1a      = string
+    db_1b      = string
+  })
 }
 
 # ---------------------------------------------------------------- VPC peering
@@ -68,19 +109,19 @@ variable "health_check_path" {
 # ---------------------------------------------------------------- App server
 
 variable "app_instance_type" {
-  description = "Instance type of khmd-eu-pd-app-srv."
+  description = "Instance type of the app server."
   type        = string
   default     = "t3a.micro"
 }
 
 variable "app_ami_id" {
-  description = "AMI for the app server, e.g. khmd-srv-base-ami. Empty = latest Amazon Linux 2023."
+  description = "AMI for the app server, e.g. the base AMI. Empty = latest Amazon Linux 2023."
   type        = string
   default     = ""
 }
 
 variable "create_base_ami" {
-  description = "Create the khmd-srv-base-ami image from the app server. Enable after user data has finished."
+  description = "Create the base AMI from the app server. Enable after user data has finished."
   type        = bool
   default     = false
 }
@@ -129,19 +170,18 @@ variable "db_username" {
 # ---------------------------------------------------------------- S3 / logging
 
 variable "user_static_bucket_name" {
-  description = "S3 bucket for user static data. Bucket names are global, change if taken."
+  description = "S3 bucket for user static data."
   type        = string
-  default     = "khmd-eu-pd-user-static-data"
 }
 
 variable "cloudtrail_bucket_name" {
-  type    = string
-  default = "khmd-eu-pd-cloudtrail-logs"
+  description = "S3 bucket that stores CloudTrail logs."
+  type        = string
 }
 
 variable "config_bucket_name" {
-  type    = string
-  default = "khmd-eu-pd-config-logs"
+  description = "S3 bucket that stores AWS Config snapshots."
+  type        = string
 }
 
 variable "log_retention_days" {
@@ -183,11 +223,11 @@ variable "openvpn_key_name" {
 variable "vpn_client_cidrs" {
   description = "CIDRs allowed to connect to the VPN (UDP 1194, TCP 443)."
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+  default     = []
 }
 
 variable "vpn_admin_cidrs" {
-  description = "CIDRs allowed to reach the OpenVPN admin UI (TCP 943), e.g. the KaHa DevOps office IP."
+  description = "CIDRs allowed to reach the OpenVPN admin UI (TCP 943)."
   type        = list(string)
   default     = []
 }

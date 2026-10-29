@@ -16,7 +16,7 @@ resource "aws_vpc_peering_connection_accepter" "kaha" {
   vpc_peering_connection_id = var.kaha_peering_connection_id
   auto_accept               = true
 
-  tags = { Name = "kh_hmd-eu-pd-kaha-peering" }
+  tags = { Name = "${local.name}-kaha-peering" }
 }
 
 resource "aws_route" "to_kaha" {
@@ -35,7 +35,7 @@ resource "aws_vpc_peering_connection_accepter" "atlas" {
   vpc_peering_connection_id = var.atlas_peering_connection_id
   auto_accept               = true
 
-  tags = { Name = "kh_hmd-eu-pd-atlas-peering" }
+  tags = { Name = "${local.name}-atlas-peering" }
 }
 
 resource "aws_route" "to_atlas" {

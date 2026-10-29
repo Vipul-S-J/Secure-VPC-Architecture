@@ -1,16 +1,16 @@
 # Default SG of the VPC: remove all rules so nothing uses it by accident.
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "kh_hmd-eu-pd-default-sg-unused" }
+  tags   = { Name = "${local.name}-default-sg-unused" }
 }
 
 # ---------------------------------------------------------------- ALB
 
 resource "aws_security_group" "alb" {
-  name        = "kh_hmd-eu-pd-elb-sg"
+  name        = "${local.name}-alb-sg"
   description = "Internet-facing ALB: HTTP/HTTPS from anywhere"
   vpc_id      = aws_vpc.main.id
-  tags        = { Name = "kh_hmd-eu-pd-elb-sg" }
+  tags        = { Name = "${local.name}-alb-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
@@ -43,10 +43,10 @@ resource "aws_vpc_security_group_egress_rule" "alb_to_app" {
 # ---------------------------------------------------------------- App servers
 
 resource "aws_security_group" "app" {
-  name        = "khmd-eu-pd-app-srv-sg"
+  name        = "${local.name}-app-sg"
   description = "App servers: traffic only from the ALB"
   vpc_id      = aws_vpc.main.id
-  tags        = { Name = "khmd-eu-pd-app-srv-sg" }
+  tags        = { Name = "${local.name}-app-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
@@ -68,10 +68,10 @@ resource "aws_vpc_security_group_egress_rule" "app_all" {
 # ---------------------------------------------------------------- EFS
 
 resource "aws_security_group" "efs" {
-  name        = "khmd-eu-pd-efs-sg"
+  name        = "${local.name}-efs-sg"
   description = "EFS mount targets: NFS from app servers"
   vpc_id      = aws_vpc.main.id
-  tags        = { Name = "khmd-eu-pd-efs-sg" }
+  tags        = { Name = "${local.name}-efs-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "efs_from_app" {
@@ -86,10 +86,10 @@ resource "aws_vpc_security_group_ingress_rule" "efs_from_app" {
 # ---------------------------------------------------------------- RDS MySQL
 
 resource "aws_security_group" "db" {
-  name        = "khmd-eu-pd-db-sg"
+  name        = "${local.name}-db-sg"
   description = "RDS MySQL: only from the app layer, KaHa VPC and OpenVPN"
   vpc_id      = aws_vpc.main.id
-  tags        = { Name = "khmd-eu-pd-db-sg" }
+  tags        = { Name = "${local.name}-db-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
@@ -140,10 +140,10 @@ locals {
 resource "aws_security_group" "openvpn" {
   count = local.openvpn_count
 
-  name        = "khmd-eu-pd-openvpn-sg"
+  name        = "${local.name}-openvpn-sg"
   description = "OpenVPN server for KaHa DevOps"
   vpc_id      = aws_vpc.main.id
-  tags        = { Name = "khmd-eu-pd-openvpn-sg" }
+  tags        = { Name = "${local.name}-openvpn-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "openvpn_clients" {

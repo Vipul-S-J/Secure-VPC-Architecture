@@ -1,7 +1,73 @@
-# kh_hmd production architecture: HMD account
+# Production architecture: HMD account
 
 Region: Europe (Stockholm), `eu-north-1`.
 All resources below were created manually in the AWS console.
+IP ranges, resource IDs, account IDs and bucket names are intentionally left out of this repo.
+
+## Naming
+
+Resources follow the pattern `<project>-<environment>-<resource>`.
+With the defaults (`project = "app"`, `environment = "prod"`) the VPC is `app-prod-vpc`
+and the EC2 role is `app-prod-ec2-role`.
+
+## Architecture diagram
+
+```mermaid
+flowchart LR
+    users(["Web / mobile users"])
+    devops(["KaHa DevOps"])
+
+    subgraph region["Europe (Stockholm) eu-north-1"]
+        direction LR
+
+        subgraph hmd["HMD AWS account"]
+            direction TB
+
+            services["Account services<br/>CloudWatch · SNS · CloudTrail<br/>GuardDuty · Config · KMS"]
+
+            subgraph vpc["VPC (app-prod-vpc)"]
+                direction TB
+
+                subgraph pub["Public subnets 1a / 1b"]
+                    alb["Application Load Balancer"]
+                    nat["NAT Gateway"]
+                    vpn["OpenVPN"]
+                end
+
+                subgraph pvt["Private subnets 1a / 1b"]
+                    app["App server (EC2)"]
+                    efs["EFS"]
+                end
+
+                subgraph db["DB private subnets 1a / 1b"]
+                    rds[("RDS MySQL")]
+                end
+            end
+
+            s3[("S3 user static data")]
+        end
+
+        subgraph atlas["MongoDB Atlas account"]
+            mongo[("MongoDB Atlas Cloud Service")]
+        end
+
+        kaha["KaHa VPC (KaHa account)"]
+    end
+
+    ext["HMD managed external services<br/>SMS gateways · Voice OTP providers<br/>SendGrid email · MapMyIndia navigation<br/>CleverTap analytics · Entity Sports feed<br/>OpenWeather API"]
+
+    users --> alb
+    alb --> app
+    app --> efs
+    app --> rds
+    app --> s3
+    app -- outbound --> nat
+    nat --> ext
+    devops -. VPN .-> vpn
+    vpn --> rds
+    vpc <-. VPC peering .-> kaha
+    vpc <-. VPC peering .-> mongo
+```
 
 ## Architectural considerations
 
@@ -16,66 +82,55 @@ All resources below were created manually in the AWS console.
 9. Application configuration was checked with the application team for the new environment.
 10. EC2 instance family and size can be changed later based on load.
 
-## HMD account services (from the architecture diagram)
+## VPC: `app-prod-vpc`
 
-CloudWatch, SNS, CloudTrail, GuardDuty, Config, KMS, S3 (user static data), RDS MySQL,
-VPC peering with the KaHa VPC, VPC peering with the MongoDB Atlas VPC, OpenVPN for KaHa DevOps.
+| Subnet | Tier | AZ |
+|---|---|---|
+| app-prod-public-1a | Public | eu-north-1a |
+| app-prod-public-1b | Public | eu-north-1b |
+| app-prod-private-1a | Private (app) | eu-north-1a |
+| app-prod-private-1b | Private (app) | eu-north-1b |
+| app-prod-db-1a | Private (DB) | eu-north-1a |
+| app-prod-db-1b | Private (DB) | eu-north-1b |
 
-## VPC
-
-| Name | CIDR |
-|---|---|
-| kh_hmd-eu-pd-vpc | 10.91.0.0/17 |
-
-| Subnet | CIDR |
-|---|---|
-| kh_hmd-pd-1a-pub-subnet | 10.91.0.0/23 |
-| kh_hmd-pd-1b-pub-subnet | 10.91.2.0/23 |
-| kh_hmd-pd-1a-pvt-subnet | 10.91.4.0/23 |
-| kh_hmd-pd-1b-pvt-subnet | 10.91.6.0/23 |
-| kh_hmd-pd-db-1a-pvt-subnet | 10.91.8.0/23 |
-| kh_hmd-pd-db-1b-pvt-subnet | 10.91.10.0/23 |
-
-## NAT gateway: `kh_hmd-eu-pd-pub-nat`
+## NAT gateway: `app-prod-nat`
 
 - Created in a public subnet.
-- Attached to the private route table `kh_hmd-pd-pvt-rtb`.
+- Attached to the private route table `app-prod-private-rt`.
 
-## CloudTrail: `kh_hmd-eu-pd-cloudtrail`
+## CloudTrail: `app-prod-cloudtrail`
 
 - Created in the Stockholm region.
 - Multi-region trail.
-- Logs go to the CloudWatch log group `kh_hmd-eu-pd-cloudtrail-logs`.
-- Logs are stored in the S3 bucket `khmd-eu-pd-cloudtrail-logs`.
+- Logs go to a CloudWatch log group and to an S3 bucket.
 
-## KMS: `kh_hmd-prod-eu-key`
+## KMS: `alias/app-prod-key`
 
 - Single-region key.
 - Symmetric, used to encrypt and decrypt.
 
-## ALB: `khmd-eu-pd-ELB`
+## ALB: `app-prod-alb`
 
 - Internet-facing Application Load Balancer.
 - Spread across the public subnets.
-- Security group: `kh_hmd-eu-pd-elb-sg`.
+- Security group: `app-prod-alb-sg`.
 
-## EFS: `khmd-eu-pd-app-srv-efs` (fs-06610e73d51fe5c59)
+## EFS: `app-prod-efs`
 
 - Regional availability.
 
-## AMI: `khmd-srv-base-ami`
+## App server base AMI: `app-prod-base-ami`
 
 Built from this instance:
 
 | Setting | Value |
 |---|---|
-| Name | khmd-eu-pd-app-srv |
+| Name | app-prod-app |
 | OS image | Amazon Linux |
 | Architecture | x86_64 |
 | Instance type | t3a.micro |
-| Key pair | None |
-| VPC | kh_hmd-eu-pd-vpc |
-| Security group | khmd-eu-pd-app-srv-sg |
+| Key pair | None (access through SSM) |
+| Security group | app-prod-app-sg |
 | Storage | 20 GB gp3 |
-| IAM instance profile | KhmdPdEc2BasicRole |
+| IAM instance profile | app-prod-ec2-role |
 | User data | [`user_data/app-server.sh`](../user_data/app-server.sh) (installs the SSM agent, CloudWatch agent and cron) |

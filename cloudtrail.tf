@@ -100,13 +100,13 @@ data "aws_iam_policy_document" "cloudtrail_bucket" {
 # ---------------------------------------------------------------- CloudWatch Logs
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
-  name              = "kh_hmd-eu-pd-cloudtrail-logs"
+  name              = "${local.name}-cloudtrail-logs"
   retention_in_days = var.log_retention_days
   kms_key_id        = aws_kms_key.prod.arn
 }
 
 resource "aws_iam_role" "cloudtrail_logs" {
-  name               = "KhmdPdCloudTrailLogsRole"
+  name               = "${local.name}-cloudtrail-logs-role"
   assume_role_policy = data.aws_iam_policy_document.cloudtrail_assume.json
 }
 

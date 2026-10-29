@@ -4,8 +4,8 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "kh_hmd"
-      Environment = "prod"
+      Project     = var.project
+      Environment = var.environment
       Account     = "HMD"
       ManagedBy   = "Terraform"
     }

@@ -1,6 +1,6 @@
 # Regional EFS for the app servers, with a mount target in each private subnet.
 resource "aws_efs_file_system" "app" {
-  creation_token   = "khmd-eu-pd-app-srv-efs"
+  creation_token   = "${local.name}-efs"
   encrypted        = true
   kms_key_id       = aws_kms_key.prod.arn
   performance_mode = "generalPurpose"
@@ -10,7 +10,7 @@ resource "aws_efs_file_system" "app" {
     transition_to_ia = "AFTER_30_DAYS"
   }
 
-  tags = { Name = "khmd-eu-pd-app-srv-efs" }
+  tags = { Name = "${local.name}-efs" }
 }
 
 resource "aws_efs_backup_policy" "app" {
