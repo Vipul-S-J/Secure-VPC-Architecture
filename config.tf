@@ -1,0 +1,151 @@
+# AWS Config: records all supported resources and delivers snapshots to S3.
+
+resource "aws_s3_bucket" "config" {
+  bucket = var.config_bucket_name
+}
+
+resource "aws_s3_bucket_ownership_controls" "config" {
+  bucket = aws_s3_bucket.config.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "config" {
+  bucket                  = aws_s3_bucket.config.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "config" {
+  bucket = aws_s3_bucket.config.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "config" {
+  bucket = aws_s3_bucket.config.id
+  policy = data.aws_iam_policy_document.config_bucket.json
+
+  depends_on = [aws_s3_bucket_public_access_block.config]
+}
+
+data "aws_iam_policy_document" "config_bucket" {
+  statement {
+    sid       = "AWSConfigBucketCheck"
+    actions   = ["s3:GetBucketAcl", "s3:ListBucket"]
+    resources = [aws_s3_bucket.config.arn]
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [local.account_id]
+    }
+  }
+
+  statement {
+    sid       = "AWSConfigBucketDelivery"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.config.arn}/AWSLogs/${local.account_id}/Config/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["config.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [local.account_id]
+    }
+  }
+
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.config.arn, "${aws_s3_bucket.config.arn}/*"]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_iam_role" "config" {
+  name = "KhmdPdConfigRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "config.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "config" {
+  role       = aws_iam_role.config.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWS_ConfigRole"
+}
+
+resource "aws_iam_role_policy" "config_s3" {
+  name = "config-delivery-to-s3"
+  role = aws_iam_role.config.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetBucketAcl", "s3:ListBucket"]
+        Resource = aws_s3_bucket.config.arn
+      },
+      {
+        Effect    = "Allow"
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.config.arn}/AWSLogs/${local.account_id}/Config/*"
+        Condition = { StringEquals = { "s3:x-amz-acl" = "bucket-owner-full-control" } }
+      },
+    ]
+  })
+}
+
+resource "aws_config_configuration_recorder" "main" {
+  name     = "khmd-eu-pd-config-recorder"
+  role_arn = aws_iam_role.config.arn
+
+  recording_group {
+    all_supported                 = true
+    include_global_resource_types = true
+  }
+}
+
+resource "aws_config_delivery_channel" "main" {
+  name           = "khmd-eu-pd-config-channel"
+  s3_bucket_name = aws_s3_bucket.config.id
+
+  depends_on = [aws_config_configuration_recorder.main, aws_s3_bucket_policy.config]
+}
+
+resource "aws_config_configuration_recorder_status" "main" {
+  name       = aws_config_configuration_recorder.main.name
+  is_enabled = true
+
+  depends_on = [aws_config_delivery_channel.main]
+}

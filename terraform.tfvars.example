@@ -1,0 +1,31 @@
+# Copy to terraform.tfvars and fill in.
+hmd_account_id = "123456789012"
+
+# VPC peering (HMD side). Get the pcx IDs from VPC > Peering connections.
+kaha_peering_connection_id  = ""   # pcx-...
+kaha_vpc_cidr               = ""   # e.g. 10.90.0.0/16
+atlas_peering_connection_id = ""   # pcx-... from MongoDB Atlas
+atlas_cidr                  = ""   # Atlas project CIDR, e.g. 192.168.248.0/21
+
+# ALB
+certificate_arn   = ""   # ACM certificate in eu-north-1; empty = HTTP only
+app_port          = 80
+health_check_path = "/"
+
+# App server
+app_instance_type = "t3a.micro"
+app_ami_id        = ""   # khmd-srv-base-ami ID; empty = latest Amazon Linux 2023
+create_base_ami   = false
+
+# RDS MySQL
+db_engine_version = "8.4"
+db_instance_class = "db.t4g.micro"
+db_multi_az       = true
+
+# Alerts
+alert_emails = ["devops@example.com"]
+
+# OpenVPN
+create_openvpn  = true
+openvpn_ami_id  = ""   # OpenVPN Access Server AMI (AWS Marketplace, eu-north-1)
+vpn_admin_cidrs = []   # e.g. ["203.0.113.10/32"]
