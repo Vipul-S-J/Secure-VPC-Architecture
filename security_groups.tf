@@ -87,29 +87,29 @@ resource "aws_vpc_security_group_ingress_rule" "efs_from_app" {
 
 resource "aws_security_group" "db" {
   name        = "${local.name}-db-sg"
-  description = "RDS MySQL: only from the app layer, KaHa VPC and OpenVPN"
+  description = "RDS MySQL: only from the app layer, partner VPC and OpenVPN"
   vpc_id      = aws_vpc.main.id
   tags        = { Name = "${local.name}-db-sg" }
 }
 
 resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
   security_group_id            = aws_security_group.db.id
-  description                  = "MySQL from HMD app servers"
+  description                  = "MySQL from app servers"
   ip_protocol                  = "tcp"
   from_port                    = 3306
   to_port                      = 3306
   referenced_security_group_id = aws_security_group.app.id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "db_from_kaha" {
-  count = local.kaha_peering ? 1 : 0
+resource "aws_vpc_security_group_ingress_rule" "db_from_partner" {
+  count = local.partner_peering ? 1 : 0
 
   security_group_id = aws_security_group.db.id
-  description       = "MySQL from KaHa VPC over peering"
+  description       = "MySQL from partner VPC over peering"
   ip_protocol       = "tcp"
   from_port         = 3306
   to_port           = 3306
-  cidr_ipv4         = var.kaha_vpc_cidr
+  cidr_ipv4         = var.partner_vpc_cidr
 }
 
 resource "aws_vpc_security_group_ingress_rule" "db_from_openvpn" {
@@ -141,7 +141,7 @@ resource "aws_security_group" "openvpn" {
   count = local.openvpn_count
 
   name        = "${local.name}-openvpn-sg"
-  description = "OpenVPN server for KaHa DevOps"
+  description = "OpenVPN server for the DevOps team"
   vpc_id      = aws_vpc.main.id
   tags        = { Name = "${local.name}-openvpn-sg" }
 }

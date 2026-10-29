@@ -1,5 +1,5 @@
 # Template only. Real values are kept outside this repo.
-hmd_account_id = "<HMD_ACCOUNT_ID>"
+aws_account_id = "<AWS_ACCOUNT_ID>"
 
 # Naming: resources are named <project>-<environment>-<resource>, e.g. app-prod-vpc
 project     = "app"
@@ -16,11 +16,11 @@ subnet_cidrs = {
   db_1b      = "<CIDR>"
 }
 
-# VPC peering (HMD side)
-kaha_peering_connection_id  = "<PEERING_ID>"
-kaha_vpc_cidr               = "<KAHA_VPC_CIDR>"
-atlas_peering_connection_id = "<PEERING_ID>"
-atlas_cidr                  = "<ATLAS_CIDR>"
+# VPC peering (this account's side)
+partner_peering_connection_id  = "<PEERING_ID>"
+partner_vpc_cidr               = "<PARTNER_VPC_CIDR>"
+db_provider_peering_connection_id = "<PEERING_ID>"
+db_provider_cidr                  = "<DB_PROVIDER_CIDR>"
 
 # S3 buckets
 user_static_bucket_name = "<BUCKET_NAME>"

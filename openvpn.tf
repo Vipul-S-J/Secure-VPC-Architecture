@@ -1,4 +1,4 @@
-# OpenVPN server in public subnet 1a. KaHa DevOps connect through it to reach the HMD VPC.
+# OpenVPN server in public subnet 1a. The DevOps team connects through it to reach the VPC.
 resource "aws_instance" "openvpn" {
   count = local.openvpn_count
 

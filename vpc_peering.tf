@@ -1,4 +1,4 @@
-# HMD side of the VPC peerings. The KaHa side (request + KaHa routes) lives in the KaHa account.
+# This account's side of the VPC peerings. The other side (request + its routes) lives in the partner account.
 # The accepter resource also adopts a peering that was already accepted in the console.
 
 locals {
@@ -8,40 +8,40 @@ locals {
   }
 }
 
-# ---------------------------------------------------------------- KaHa VPC
+# ---------------------------------------------------------------- Partner VPC
 
-resource "aws_vpc_peering_connection_accepter" "kaha" {
-  count = local.kaha_peering ? 1 : 0
+resource "aws_vpc_peering_connection_accepter" "partner" {
+  count = local.partner_peering ? 1 : 0
 
-  vpc_peering_connection_id = var.kaha_peering_connection_id
+  vpc_peering_connection_id = var.partner_peering_connection_id
   auto_accept               = true
 
-  tags = { Name = "${local.name}-kaha-peering" }
+  tags = { Name = "${local.name}-partner-peering" }
 }
 
-resource "aws_route" "to_kaha" {
-  for_each = local.kaha_peering ? local.peered_route_tables : {}
+resource "aws_route" "to_partner" {
+  for_each = local.partner_peering ? local.peered_route_tables : {}
 
   route_table_id            = each.value
-  destination_cidr_block    = var.kaha_vpc_cidr
-  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.kaha[0].id
+  destination_cidr_block    = var.partner_vpc_cidr
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.partner[0].id
 }
 
-# ---------------------------------------------------------------- MongoDB Atlas VPC
+# ---------------------------------------------------------------- managed database provider VPC
 
-resource "aws_vpc_peering_connection_accepter" "atlas" {
-  count = local.atlas_peering ? 1 : 0
+resource "aws_vpc_peering_connection_accepter" "db_provider" {
+  count = local.db_provider_peering ? 1 : 0
 
-  vpc_peering_connection_id = var.atlas_peering_connection_id
+  vpc_peering_connection_id = var.db_provider_peering_connection_id
   auto_accept               = true
 
-  tags = { Name = "${local.name}-atlas-peering" }
+  tags = { Name = "${local.name}-db-provider-peering" }
 }
 
-resource "aws_route" "to_atlas" {
-  for_each = local.atlas_peering ? local.peered_route_tables : {}
+resource "aws_route" "to_db_provider" {
+  for_each = local.db_provider_peering ? local.peered_route_tables : {}
 
   route_table_id            = each.value
-  destination_cidr_block    = var.atlas_cidr
-  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.atlas[0].id
+  destination_cidr_block    = var.db_provider_cidr
+  vpc_peering_connection_id = aws_vpc_peering_connection_accepter.db_provider[0].id
 }

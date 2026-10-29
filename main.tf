@@ -7,13 +7,13 @@ locals {
   # Every resource name follows <project>-<environment>-<resource>, e.g. app-prod-vpc.
   name = "${var.project}-${var.environment}"
 
-  trail_name    = "${local.name}-cloudtrail"
-  trail_arn     = "arn:aws:cloudtrail:${var.region}:${local.account_id}:trail/${local.trail_name}"
-  https_enabled = var.certificate_arn != ""
-  kaha_peering  = var.kaha_peering_connection_id != ""
-  atlas_peering = var.atlas_peering_connection_id != ""
-  app_ami_id    = var.app_ami_id != "" ? var.app_ami_id : data.aws_ssm_parameter.al2023.insecure_value
-  openvpn_count = var.create_openvpn ? 1 : 0
+  trail_name          = "${local.name}-cloudtrail"
+  trail_arn           = "arn:aws:cloudtrail:${var.region}:${local.account_id}:trail/${local.trail_name}"
+  https_enabled       = var.certificate_arn != ""
+  partner_peering     = var.partner_peering_connection_id != ""
+  db_provider_peering = var.db_provider_peering_connection_id != ""
+  app_ami_id          = var.app_ami_id != "" ? var.app_ami_id : data.aws_ssm_parameter.al2023.insecure_value
+  openvpn_count       = var.create_openvpn ? 1 : 0
 }
 
 # Latest Amazon Linux 2023 (x86_64). Used when app_ami_id is not set.

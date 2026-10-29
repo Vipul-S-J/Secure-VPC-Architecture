@@ -1,4 +1,4 @@
-# Production architecture: HMD account
+# Production architecture
 
 Region: Europe (Stockholm), `eu-north-1`.
 All resources below were created manually in the AWS console.
@@ -12,7 +12,7 @@ and the EC2 role is `app-prod-ec2-role`.
 
 ## Architecture diagram
 
-![HMD account architecture](architecture.png)
+![Architecture](architecture.png)
 
 Editable source: [`architecture.drawio`](architecture.drawio). Open it in [draw.io](https://app.diagrams.net) and export it again as `architecture.png` after changes.
 

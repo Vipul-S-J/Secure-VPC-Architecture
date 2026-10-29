@@ -1,5 +1,5 @@
-variable "hmd_account_id" {
-  description = "HMD AWS account ID. Terraform refuses to run against any other account."
+variable "aws_account_id" {
+  description = "AWS account ID. Terraform refuses to run against any other account."
   type        = string
 }
 
@@ -52,36 +52,36 @@ variable "subnet_cidrs" {
 
 # ---------------------------------------------------------------- VPC peering
 
-variable "kaha_peering_connection_id" {
-  description = "ID (pcx-...) of the VPC peering connection requested from the KaHa account. Leave empty to skip."
+variable "partner_peering_connection_id" {
+  description = "ID (pcx-...) of the VPC peering connection requested from the partner account. Leave empty to skip."
   type        = string
   default     = ""
 
   validation {
-    condition     = var.kaha_peering_connection_id == "" || var.kaha_vpc_cidr != ""
-    error_message = "Set kaha_vpc_cidr when kaha_peering_connection_id is set."
+    condition     = var.partner_peering_connection_id == "" || var.partner_vpc_cidr != ""
+    error_message = "Set partner_vpc_cidr when partner_peering_connection_id is set."
   }
 }
 
-variable "kaha_vpc_cidr" {
-  description = "CIDR of the KaHa VPC. Used for routes and for MySQL access from KaHa app servers."
+variable "partner_vpc_cidr" {
+  description = "CIDR of the partner VPC. Used for routes and for MySQL access from partner app servers."
   type        = string
   default     = ""
 }
 
-variable "atlas_peering_connection_id" {
-  description = "ID (pcx-...) of the peering connection requested from MongoDB Atlas. Leave empty to skip."
+variable "db_provider_peering_connection_id" {
+  description = "ID (pcx-...) of the peering connection requested from the managed database provider. Leave empty to skip."
   type        = string
   default     = ""
 
   validation {
-    condition     = var.atlas_peering_connection_id == "" || var.atlas_cidr != ""
-    error_message = "Set atlas_cidr when atlas_peering_connection_id is set."
+    condition     = var.db_provider_peering_connection_id == "" || var.db_provider_cidr != ""
+    error_message = "Set db_provider_cidr when db_provider_peering_connection_id is set."
   }
 }
 
-variable "atlas_cidr" {
-  description = "CIDR of the MongoDB Atlas project VPC."
+variable "db_provider_cidr" {
+  description = "CIDR of the database provider VPC."
   type        = string
   default     = ""
 }
@@ -158,7 +158,7 @@ variable "db_multi_az" {
 
 variable "db_name" {
   type    = string
-  default = "hmd"
+  default = "appdb"
 }
 
 variable "db_username" {
