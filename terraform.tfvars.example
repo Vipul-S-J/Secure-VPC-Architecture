@@ -1,4 +1,5 @@
-# Template only. Real values are kept outside this repo.
+# Template only. Copy to terraform.tfvars and replace every <...> placeholder.
+# For optional features you don't use, set the value to "" (empty string).
 aws_account_id = "<AWS_ACCOUNT_ID>"
 
 # Naming: resources are named <project>-<environment>-<resource>, e.g. app-prod-vpc
@@ -16,30 +17,31 @@ subnet_cidrs = {
   db_1b      = "<CIDR>"
 }
 
-# VPC peering (this account's side)
-partner_peering_connection_id  = "<PEERING_ID>"
-partner_vpc_cidr               = "<PARTNER_VPC_CIDR>"
-db_provider_peering_connection_id = "<PEERING_ID>"
-db_provider_cidr                  = "<DB_PROVIDER_CIDR>"
+# VPC peering (this account's side). Leave "" for the first apply.
+partner_peering_connection_id     = ""
+partner_vpc_cidr                  = ""
+db_provider_peering_connection_id = ""
+db_provider_cidr                  = ""
 
-# S3 buckets
+# S3 buckets (globally unique names)
 user_static_bucket_name = "<BUCKET_NAME>"
 cloudtrail_bucket_name  = "<BUCKET_NAME>"
 config_bucket_name      = "<BUCKET_NAME>"
 
-# ALB
-certificate_arn   = "<ACM_CERTIFICATE_ARN>"
+# ALB. "" = HTTP only
+certificate_arn   = ""
 app_port          = 80
 health_check_path = "/"
 
-# App server
+# App server. app_ami_id "" = latest Amazon Linux 2023
 app_instance_type = "t3a.micro"
-app_ami_id        = "<AMI_ID>"
+app_ami_id        = ""
 
 # Alerts
 alert_emails = ["<EMAIL>"]
 
-# OpenVPN
+# OpenVPN (set create_openvpn = false to skip)
+create_openvpn   = true
 openvpn_ami_id   = "<AMI_ID>"
 vpn_client_cidrs = ["<CIDR>"]
 vpn_admin_cidrs  = ["<CIDR>"]

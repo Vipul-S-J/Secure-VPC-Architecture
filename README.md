@@ -9,8 +9,9 @@ apart from this account's side of the VPC peering.
 
 Details: [docs/architecture.md](docs/architecture.md)
 
-> **Documentation only.** These resources already exist. Do not run `terraform apply`
-> against the production account: it would try to create a second copy of everything.
+> **Do not run `terraform apply` against the production account.** These resources already
+> exist there, and Terraform would try to create a second copy of everything.
+> To build the same environment in another account, follow **[INSTRUCTIONS.md](INSTRUCTIONS.md)**.
 
 IP ranges, resource IDs, account IDs, bucket names and email addresses are not stored
 in this repo. The code reads them from variables, and `terraform.tfvars.example`
@@ -20,6 +21,7 @@ contains placeholders only.
 
 | Path | Describes |
 |---|---|
+| `INSTRUCTIONS.md` | Step-by-step guide to create the resources with Terraform |
 | `docs/architecture.md` | Architecture diagram, design considerations, resource details |
 | `docs/architecture.png` | Architecture diagram (AWS icons) |
 | `docs/architecture.drawio` | Editable draw.io source of the diagram |
